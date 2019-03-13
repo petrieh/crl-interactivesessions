@@ -3,6 +3,7 @@ import signal
 import logging
 import errno
 from collections import namedtuple
+from contextlib import contextmanager
 from crl.interactivesessions._terminalpools import _TerminalPools
 from .runnerexceptions import RemoteTimeout
 
@@ -249,8 +250,17 @@ class _BackgroundProcessWithoutPty(_BackgroundProcessBase,
 class _NoCommBackgroudProcess(_BackgroundProcessWithoutPty):
 
     def run(self):
-        self._initialize_terminal()
-        return self._get_cmd_pid()
+        with self._in_terminal():
+            self._initialize_terminal()
+            return self._get_cmd_pid()
+
+    @contextmanager
+    def _in_terminal(self):
+        try:
+            yield None
+        finally:
+            if self.terminal is not None:
+                self.terminalpools.put(self.terminal)
 
     def _get_cmd_pid(self):
         return self.proxies.daemon_popen(cmd=self.cmd,
