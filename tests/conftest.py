@@ -161,8 +161,12 @@ def mock_nohup_runnerintarget(mock_runnerintarget, runner_in_target_factory):
 
 @pytest.fixture
 def normal_shelldicts(normal_pythonterminal_factory):
+    return create_spawningshelldicts(normal_pythonterminal_factory)
+
+
+def create_spawningshelldicts(terminal_factory):
     return [{'shellname': SpawningShell.__name__,
-             'terminal_factory': normal_pythonterminal_factory}]
+             'terminal_factory': terminal_factory}]
 
 
 @pytest.fixture
@@ -171,6 +175,35 @@ def normal_pythonterminal_factory(serverterminal_factory, normal_serverprocess_f
         return serverterminal_factory(normal_serverprocess_factory)
 
     return fact
+
+
+@pytest.fixture
+def singleton_shelldicts(singleton_pythonterminal_factory):
+    return create_spawningshelldicts(singleton_pythonterminal_factory)
+
+
+@pytest.fixture
+def singleton_pythonterminal_factory(singleton_serverterminal_factory,
+                                     normal_serverprocess_factory):
+    def fact(*args):  # pylint: disable=unused-argument
+        return singleton_serverterminal_factory(normal_serverprocess_factory)
+
+    return fact
+
+
+@pytest.fixture
+def singleton_serverterminal_factory(serverterminal):
+    def fact(serverprocess_fact):
+        serverterminal.set_serverprocess_factory(serverprocess_fact)
+        serverterminal.start()
+        return serverterminal
+
+    return fact
+
+
+@pytest.fixture
+def serverterminal():
+    return ServerTerminal()
 
 
 @pytest.fixture

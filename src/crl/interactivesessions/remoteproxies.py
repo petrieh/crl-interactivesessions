@@ -8,7 +8,7 @@ from crl.interactivesessions._runnerterminalloglevel import (
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def autoinitialize(f):
@@ -77,6 +77,10 @@ class _RemoteProxy(object):
 
         self._set_remote_proxy_timeout_from_parent()
         self.remote_proxy_use_synchronous_response()
+        LOGGER.debug('RemoteProxy %s(%s), timeout=%s',
+                     repr(remote_name),
+                     id(self),
+                     self.__dict__['_remote_proxy_timeout'])
 
     @staticmethod
     def _get_remote_proxy_session_id_from_remote_name(session,
@@ -107,6 +111,12 @@ class _RemoteProxy(object):
                   '_remote_proxy_session_id',
                   '_remote_proxy_response']:
             try:
+                if n == '_handle':
+                    LOGGER.debug('Set from remote %s(%s), timeout=%s',
+                                 proxy_dict[n],
+                                 id(self),
+                                 self.__dict__['_remote_proxy_timeout'])
+
                 self.set_remote_proxy_dict_name(n, proxy_dict[n])
             except KeyError:
                 pass
@@ -189,6 +199,10 @@ class _RemoteProxy(object):
             to *timeout* in case *timeout* is positive. If *timeout* is
             negative then the terminal uses *prompt_timeout* only.
         """
+        LOGGER.debug('set timeout RemoteProxy %s(%s), timeout=%s',
+                     repr(self.__dict__['_handle']),
+                     id(self),
+                     timeout)
         self.__dict__['_remote_proxy_timeout'] = (
             self._get_remote_proxy_default_timeout()
             if timeout is None else timeout)
@@ -197,6 +211,10 @@ class _RemoteProxy(object):
         return self.__dict__['_remote_proxy_default_timeout']
 
     def _get_remote_proxy_timeout(self):
+        LOGGER.debug('get timeout RemoteProxy %s(%s), timeout=%s',
+                     self.__dict__['_handle'],
+                     id(self),
+                     self.__dict__['_remote_proxy_timeout'])
         return (-1
                 if self._remote_proxy_response == asyncresponsehandler else
                 self._remote_proxy_timeout)
