@@ -184,6 +184,7 @@ class ServerTerminal(SpawnBase):
         self._serverprocess = None
         self._serverprocess_factory = None
         self.mock_setwinsize = mock.Mock()
+        self.mock_read_nonblocking = mock.Mock()
         self._raise_timeout_in_read = False
         self.child_fd = self._client_inout.infd
 
@@ -244,6 +245,7 @@ class ServerTerminal(SpawnBase):
         LOGGER.info('Send control (%s) has no effect', cntrl)
 
     def read_nonblocking(self, size=1, timeout=None):
+        self.mock_read_nonblocking(size, timeout=timeout)
         timeout = timeout if timeout >= 0 else None
         LOGGER.debug('read_nonblocking, size=%d', size)
         if not self._serverprocess.is_alive():

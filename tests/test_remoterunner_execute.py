@@ -37,6 +37,22 @@ def test_execute_command_in_target(kwargs, remoterunner, normal_shelldicts):
     assert_result_success(ret)
 
 
+@pytest.mark.usefixtures('mock_term_functions')
+def test_execute_command_in_target_timeouts(remoterunner,
+                                            singleton_shelldicts,
+                                            serverterminal):
+    remoterunner.set_target(shelldicts=singleton_shelldicts)
+    prompt_timeout = remoterunner.get_target_properties('default')['prompt_timeout']
+    timeout = 600
+
+    ret = remoterunner.execute_command_in_target('echo out;>&2 echo err',
+                                                 timeout=timeout)
+    assert_result_success(ret)
+    for c in serverterminal.mock_read_nonblocking.mock_calls:
+        _, _, kwargs = c
+        assert kwargs['timeout'] <= timeout + prompt_timeout
+
+
 def assert_result_success(result):
     assert_result_status(result, expected_status='0')
 
