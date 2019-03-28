@@ -2,7 +2,7 @@ from crl.interactivesessions.shells.modules import MainModule
 from crl.interactivesessions.shells.remotemodules.pythoncmdline import (
     PythonCmdline)
 
-from .exampleremotemodules import mainexample
+from .remotemodules.exampleremotemodules import mainexample
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
@@ -25,5 +25,5 @@ def test_module_descendants():
     p = PythonCmdline()
     for cmd in main.cmds_gen():
         p.exec_command(cmd)
-    assert p.exec_command("{mod}.call_descendants()".format(
-        mod=main.module_var)) == mainexample.call_descendants()
+    assert p.exec_command("{mod}.call_descendants_simple(1, 2)".format(
+        mod=main.module_var)) == mainexample.call_descendants_simple(1, 2)

@@ -5,6 +5,7 @@ from crl.interactivesessions.shells.shell import TimeoutError
 from .rawpythonshell import RawPythonShell
 
 from .remotemodules import servers
+from .remotemodules import modulesmanager
 from .modules import MainModule
 from .terminalclient import (
     TerminalClient,
@@ -41,7 +42,8 @@ class MsgPythonShell(RawPythonShell):
 
     def __init__(self):
         super(MsgPythonShell, self).__init__()
-        self._servers_mod = MainModule(servers)
+        self._servers_mod = None
+        self._modulesmanager_mod = MainModule(modulesmanager)
         self._client = TerminalClient()
         self._fatalerror = FatalPythonError(Exception(
             'Python server is not started yet'))
@@ -58,7 +60,8 @@ class MsgPythonShell(RawPythonShell):
     def start(self):
         super(MsgPythonShell, self).start()
         self._setup_client()
-        for cmd in self._servers_mod.cmds_gen():
+
+        for cmd in self._modulesmanager_mod.cmds_gen():
             self._single_command_no_output(cmd, timeout=self.short_timeout)
 
         self._serve()
