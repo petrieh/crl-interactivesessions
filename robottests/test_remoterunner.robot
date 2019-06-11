@@ -2,6 +2,7 @@
 
 *** Settings ***
 
+Library    Process
 Library    crl.interactivesessions.remoterunner.RemoteRunner
 ...        WITH NAME    RemoteRunner
 
@@ -32,6 +33,16 @@ ${COMMAND}    echo out;>&2 echo err
 
 *** Keywords ***
 
+Remove Files In Target
+    [Arguments]  ${target}  ${file}  ${dir}
+    RemoteRunner.Execute Command In Target    rm ${file} ${dir}  target=${target}
+
+Remove Files Locally And In Target
+    Run Process  rm  targetlocal  remotescriptfile 
+    Remove Files In Target  target1  targetlocal  .
+    Remove Files In Target  target2  targetlocal  .
+
+
 Set RemoteRunner Targets
     RemoteRunner.Set Target    shelldicts=${SHELLDICTS1}
     ...                        name=target1
@@ -49,72 +60,64 @@ Verify Run
     Should Be Equal   ${ret.stdout}    out
     Should Be Equal   ${ret.stderr}    err
 
-*** Test Cases ***
 
-Test File Copying
-    : FOR    ${INDEX}   IN RANGE   ${REPEAT}
+Test Execute Command In Target
+    [Arguments]  ${target}
+    ${ret}=    RemoteRunner.Execute Command In Target
+    ...    ${COMMAND}    target=${target}
+    Verify Run    ${ret}    0
 
-    \    RemoteRunner.Copy File To Target    targetlocal    target=target1
-    \    RemoteRunner.Copy File Between Targets
-         ...     from_target=target1
-         ...     source_file=targetlocal
-         ...     to_target=target2
-
-    \    RemoteRunner.Copy File From Target
-         ...    targetlocal
-         ...    remotefile
-         ...    target=target2
-    \    filehelper.diff files    targetlocal    remotefile
 
 Test Execute Background Commands
+    [Arguments]  ${target}
     RemoteRunner.Execute Background Command In Target
-    ...   ${COMMAND}; sleep 10    target=target1    exec_id=test
+    ...   ${COMMAND}; sleep 10    target=${target}    exec_id=test
     ${ret}=    RemoteRunner.Kill Background Execution   test
     Verify Run   ${ret}    -15
     ${ret_from_wait}=    Remoterunner.Wait Background Execution
     ...    test   t=1
     Should Be Equal    ${ret_from_wait}    ${ret}
 
-Test Execute Command In Target
-    ${ret}=    RemoteRunner.Execute Command In Target
-    ...    ${COMMAND}    target=target2
-    Verify Run    ${ret}    0
-
-Test Execute Command In Target With Sudo
-    [Tags]     skip
-    ${ret}=    RemoteRunner.Execute Command In Target
-    ...    sudo echo out;sudo >2 echo err    target=target2
-    Verify Run    ${ret}    0
-
-Test Tty
-     ${ret}=    RemoteRunner.Execute Command In Target
-    ...    for fd in 0 1 2; do if [ -t $fd ] ;then echo $fd is connected to terminal; fi; done
-    ...    target=target2
-
-Test Tty2
-     ${ret}=    RemoteRunner.Execute Command In Target
-    ...    tty -s
-    ...    target=target2
+Test File Copying
+    Create Random File
+    [Arguments]  ${target1}  ${target2}
+    FOR    ${INDEX}   IN RANGE   ${REPEAT}
+        RemoteRunner.Copy File To Target    targetlocal    target=${target1}
+        RemoteRunner.Copy File Between Targets
+         ...     from_target=${target1}
+         ...     source_file=targetlocal
+         ...     to_target=${target2}
+        RemoteRunner.Copy File From Target
+         ...    targetlocal
+         ...    remotefile
+         ...    target=${target2}
+        filehelper.diff files    targetlocal    remotefile
+   END 
+   [Teardown]  Remove Files Locally And In Target
 
 Test Break Sessions Before Execute Command In Target
-    RemoteRunner.Set Target Property    target1    prompt_timeout    1
-    : FOR    ${INDEX}    IN RANGE    2
-    \    SessionBroker.Break Sessions
-    \    ${ret}=    RemoteRunner.Execute Command In Target    ${COMMAND}
-         ...    target=target1
-    \    Verify Run    ${ret}    0
+    [Arguments]  ${target}
+    RemoteRunner.Set Target Property    ${target}    prompt_timeout    1
+     FOR    ${INDEX}    IN RANGE    2
+        SessionBroker.Break Sessions
+        ${ret}=    RemoteRunner.Execute Command In Target    ${COMMAND}
+        ...    target=${target}
+        Verify Run    ${ret}    0
+     END
 
 Test Hang Sessions Before Execute Command In Target
-    RemoteRunner.Set Target Property    target1    prompt_timeout    1
-    : FOR    ${INDEX}    IN RANGE    2
-    \    SessionBroker.Hang Sessions
-    \    ${ret}=    RemoteRunner.Execute Command In Target    ${COMMAND}
-         ...    target=target1
-    \    Verify Run    ${ret}    0
-
+    [Arguments]  ${target}
+    RemoteRunner.Set Target Property    ${target}    prompt_timeout    1
+     FOR    ${INDEX}    IN RANGE    2
+        SessionBroker.Hang Sessions
+        ${ret}=    RemoteRunner.Execute Command In Target    ${COMMAND}
+        ...    target=${target}
+        Verify Run    ${ret}    0
+     END
 
 Test Get Proxy From Call
-    ${term}=    RemoteRunner.Get Terminal    target1
+    [Arguments]  ${target}
+    ${term}=    RemoteRunner.Get Terminal    ${target}
     RemoteRunner.Import Local Path Module In Terminal
     ...    ${term}   ${CURDIR}/proxytest.py
     ${testproxy}=    RemoteRunner.Get Proxy From Call In Terminal  ${term}
@@ -123,9 +126,51 @@ Test Get Proxy From Call
     Should Be Equal   ${ret.testid}    1
     Should Be Equal   ${ret.status}    0
 
-
 Test Get Proxy Object
-    ${term}=    RemoteRunner.Get Terminal    target1
+    [Arguments]  ${target}
+    ${term}=    RemoteRunner.Get Terminal    ${target}
     ${osproxy}=    RemoteRunner.Get Proxy Object In Terminal    ${term}   os
     ${os}=   Get Variable Value   ${osproxy.uname()[0]}
     Should Be Equal   ${os}    Linux
+
+*** Test Cases ***
+
+
+Template Test Execute Command In Target
+    [Template]  Test Execute Command In Target
+    target1
+    target2
+    
+
+Template Test Execute Background Commands
+    [Template]  Test Execute Background Commands
+    target1
+    target2
+
+Template Test File Copying
+    [Template]  Test File Copying
+    target1  target2
+    target2  target1
+
+Template Test Break Sessions Before Execute Command In Target
+    [Template]  Test Break Sessions Before Execute Command In Target
+    target1
+    target2
+
+
+Template Test Hang Sessions Before Execute Command In Target
+    [Template]  Test Hang Sessions Beore Execute Command In Target
+    target1
+    target2 
+
+
+Template Test Get Proxy From Call
+    [Template]  Test Get Proxy From Call
+    target1
+    target2
+
+Template Test Get Proxy Object
+    [Template]  Test Get Proxy Object
+    target1
+    target2
+
