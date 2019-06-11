@@ -1,6 +1,6 @@
+from io import StringIO
 import mock
 import pytest
-from io import StringIO
 from crl.interactivesessions.SelfRepairingSession import (
     Unpickler, ShellSubprocessPickler)
 from crl.interactivesessions.ShellSubprocess import (

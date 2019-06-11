@@ -202,6 +202,9 @@ class _AsyncProcessWithoutPty(_ForegroundProcessWithoutPty):
                                                         self.timeout)
         pid = self.pro.pid
         for line in timeout_generator(lines_iterator, self.timeout):
+            LOGGER.debug("tmp_stdout = %s; appending line: %s",
+                         tmp_stdout,
+                         line)
             tmp_stdout.append(line)
             LOGGER.debug("pid=%s: %s", pid, to_string(line))
 

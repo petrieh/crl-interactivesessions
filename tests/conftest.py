@@ -8,7 +8,7 @@ from crl.interactivesessions._targetproperties import _TargetProperties
 from crl.interactivesessions.remoterunner import RemoteRunner
 from crl.interactivesessions._process import RunResult
 from crl.interactivesessions.shells import remotemodules
-from . import patch_subprocess  # pylint: disable=unused-import
+from . import patch_subprocess  # pylint: disable=unused-import; # noqa: F401
 from .shells.terminals.serverterminal import (
     ServerProcess,
     ServerTerminal)
@@ -265,9 +265,8 @@ def promptpythonserver_factory():
 
 class ChunklessServerComm(remotemodules.servercomm.ServerComm):
     def write(self, s):
-        ret = self._write(s)
+        self._write(s)
         self._flush()
-        return ret
 
 
 @pytest.fixture

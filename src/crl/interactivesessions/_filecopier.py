@@ -387,11 +387,11 @@ class _LocalDirCopier(_FileCopier):
             timeout=timeout)
 
     def copy_directory_to_target(self):
-        self.copydirremotefile.makedirs_if_needed('0o777')
+        self.copydirremotefile.makedirs_if_needed(oct(0o777))
         self._copy_directory(self.source_dir, self.copydirremotefile)
 
     def _copy_directory(self, source_dir, target):
-        root, dirnames, filenames = os.walk(source_dir).next()
+        root, dirnames, filenames = next(os.walk(source_dir))
         for f in filenames:
             self.copy_file_no_dir_create(
                 sourcefile=_LocalFile(os.path.join(root, f)),
@@ -399,6 +399,7 @@ class _LocalDirCopier(_FileCopier):
                 mode=self.mode)
         for d in dirnames:
             nexttarget = target.create_with_append(d)
-            nexttarget.makedirs_if_needed('0o777')
+            nexttarget.makedirs_if_needed(oct(0o777))
             self._copy_directory(os.path.join(root, d), nexttarget)
+
         target.chmod(self.mode)

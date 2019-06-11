@@ -10,11 +10,11 @@ from crl.interactivesessions.InteractiveSession import (
     InteractiveSession)
 from crl.interactivesessions.runnerexceptions import (
     SessionInitializationFailed)
-from .shells.remotemodules.compatibility import to_string
+
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class AutoRecoveringTerminal(object):
@@ -155,7 +155,7 @@ class AutoRecoveringTerminal(object):
                 return function()
             except broken_exceptions as e:
                 exc = e
-                logger.debug('%s: %s\nBacktrace: \n%s',
+                LOGGER.debug('%s: %s\nBacktrace: \n%s',
                              e.__class__.__name__, e,
                              ''.join(traceback.format_list(
                                  traceback.extract_tb(sys.exc_info()[2]))))
@@ -215,11 +215,11 @@ class AutoRecoveringTerminal(object):
                 self._try_to_finalize()
                 self._session.close_terminal()
             except Exception as e:  # pylint: disable=broad-except
-                logger.info('Failed to close terminal: %s', e)
+                LOGGER.info('Failed to close terminal: %s', e)
             self._session = None
 
     def _try_to_finalize(self):
         try:
             self._finalize()
         except Exception as e:  # pylint: disable=broad-except
-            logger.info('Failed to finalize the terminal: %s', e)
+            LOGGER.info('Failed to finalize the terminal: %s', e)

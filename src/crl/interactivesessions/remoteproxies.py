@@ -81,7 +81,7 @@ class _RemoteProxy(object):
                                                       remote_name):
         if remote_name is None:
             return None
-        elif session.session_id is None:
+        if session.session_id is None:
             return 'uninitialized'
         return session.session_id
 
@@ -196,7 +196,7 @@ class _RemoteProxy(object):
 
     def _get_remote_proxy_timeout(self):
         return (-1
-                if self._remote_proxy_response == asyncresponsehandler else
+                if self._remote_proxy_response is asyncresponsehandler else
                 self._remote_proxy_timeout)
 
     def remote_proxy_use_synchronous_response(self):

@@ -272,14 +272,12 @@ class RunnerTerminal(object):
 
         Any setup actions for the executor or handler should be done here.
         """
-        pass
 
     def _close(self):
         """Subclass callback, called before the executor is closed.
 
         Any cleanup actions for the executor or handler should be done here.
         """
-        pass
 
     def run_python(self, cmd, timeout=None):
         """Runs a python expression on the remote node.
@@ -373,7 +371,6 @@ class RunnerTerminal(object):
         return self.__identity_or_raise(self._try_to_deserialize(out, cmd))
 
     def _try_to_deserialize(self, output, cmd):
-        LOGGER.debug('_try_to_deserialize: output == %s; type == %s', output, type(output))
         try:
             return self.__deserialize(output, cmd)
         except Exception as e:

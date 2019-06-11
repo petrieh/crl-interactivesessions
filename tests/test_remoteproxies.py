@@ -261,8 +261,8 @@ class MockLoad(object):
         self.count += 1
         if self.count > 1:
             raise Exception('message')
-        else:
-            return ('steeringstring', self._pickled)
+
+        return ('steeringstring', self._pickled)
 
     @property
     def expected_pickled(self):

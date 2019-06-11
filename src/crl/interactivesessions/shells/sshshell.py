@@ -21,7 +21,6 @@ class SshError(InteractiveSessionError):
     """
     Raised when :class:`.SshShell` start fails
     """
-    pass
 
 
 @RegisterShell()
@@ -119,7 +118,6 @@ class SshShell(BashShell):
         To be implemented in derivative classes if needed
         Should raise ShellStartError if not successful.
         """
-        pass
 
     def _start_in_paramiko(self):
         return self._common_start()

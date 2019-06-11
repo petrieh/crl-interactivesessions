@@ -6,13 +6,12 @@ from io import (
 if 'commbase' not in globals():
     from . import commbase
     from . import tokenreader
-    from . import comp
     from . import compatibility
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
-CHILD_MODULES = [commbase, tokenreader, comp, compatibility]
+CHILD_MODULES = [commbase, tokenreader, compatibility]
 CHUNKSIZE = 4096
 MAX_BUFFER_SIZE = 100 * CHUNKSIZE
 LOGGER = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ class ChunkWriterBase(ChunkIOBase, commbase.CommWriterBase):
 
     def write(self, s):
         """Write string or bytes *s* with *_write*"""
-        for i in comp.comprange(0, len(s), CHUNKSIZE):
+        for i in compatibility.RANGE(0, len(s), CHUNKSIZE):
             chunk = s[i:i + CHUNKSIZE]
             self._write_with_size_and_token(chunk)
             self._flush()

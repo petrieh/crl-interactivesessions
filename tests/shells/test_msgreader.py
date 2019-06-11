@@ -28,7 +28,7 @@ def test_msgreader(timeout, expected, caplog):
     s = set(['Set timeout for reading post-login banner message to {} seconds'.format(
         timeout),
              'Reset timeout for reading post-login banner message to 15 seconds'])
-    assert s.issubset(set([r.message for r in caplog.records]))
+    assert s.issubset({r.message for r in caplog.records})
 
 
 @contextmanager

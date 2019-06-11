@@ -71,7 +71,7 @@ def test_osproxies_raises_attributeerror(mock_terminal):
         _OsProxiesForRemoteFile(mock_terminal, 1).notexist
 
 
-@pytest.mark.parametrize('mode', ['0o777', '0o444', '0o755'])
+@pytest.mark.parametrize('mode', [oct(0o777), oct(0o444), oct(0o755)])
 def test_localfile_chmod(tmpdir, mode):
     with tmpdir.as_cwd():
         l = _LocalFile('local')

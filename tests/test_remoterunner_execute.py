@@ -258,7 +258,7 @@ class MultiTargetsBase(object):
                 self.basecmd, target=t))
 
     def execute_command_in_one_target(self):
-        t = self.targets().next()
+        t = next(self.targets())
         self.remoterunner.execute_command_in_target(self.cmd, target=t)
 
     def assert_after_end_operation(self):

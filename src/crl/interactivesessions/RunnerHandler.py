@@ -29,8 +29,10 @@ def get_python_file_path():
 class _Container(object):
     pass
 
+
 class RunnerHandlerUnableToDeserialize(Exception):
     pass
+
 
 _PROXY_CONTAINER = _Container()
 
@@ -61,10 +63,10 @@ class FileHandle(object):
         self.outfile = outfile
 
     def write(self, size):
-        self._write_stdout_with_flush('reading start')
+        self._write_stdout_with_flush(b'reading start')
         with self._blocking_context():
             self.handle.write(base64.b64decode(self.infile.read(size)))
-        self._write_stdout_with_flush('reading stop')
+        self._write_stdout_with_flush(b'reading stop')
 
     @contextmanager
     def _blocking_context(self):
@@ -77,7 +79,7 @@ class FileHandle(object):
             fcntl.fcntl(infd, fcntl.F_SETFL, fl)
 
     def _write_stdout_with_flush(self, buf):
-        if sys.version_info.major == 3:
+        if PY3:
             self.outfile.buffer.write(buf)
         else:
             self.outfile.write(buf)
@@ -139,8 +141,8 @@ class _Response(object):
 
     def _serialize(self, steeringstring, obj):
         return self.runnerhandler.pickler.dumps(
-            (steeringstring, self.runnerhandler.pickler.dumps(obj, protocol=0)
-            ), protocol=0)
+            (steeringstring, self.runnerhandler.pickler.dumps(obj, protocol=0)),
+            protocol=0)
 
 
 def responsethread(function, *args, **kwargs):
@@ -165,7 +167,6 @@ class _RunnerHandler(object):
                               'S': self._to_string,
                               'B': self._to_bytes}
 
-
     def initialize(self,
                    contextmgr=None,
                    pickler=pickle,
@@ -178,9 +179,11 @@ class _RunnerHandler(object):
 
     @property
     def _default_handled_types(self):
-        return ([None, int, float, str, bytes]
-                if sys.version_info.major == 3 else
-                [None, int, float, long, unicode, str])
+        common = [None, int, float, str]
+        pydep = ([bytes]
+                 if PY3 else
+                 [long, unicode])  # pylint: disable=undefined-variable; # noqa: F821
+        return common + pydep
 
     def add_response(self, response_id, response):
         self._responses[response_id] = response

@@ -18,9 +18,8 @@ class RunnerInTargetBackground(object):
 
     @contextmanager
     def patch(self):
-        with mock.patch(
-            'crl.interactivesessions._runnerintarget.{}'.format(
-                self.method_processcls.cls)) as p:
+        with mock.patch('crl.interactivesessions.'
+                        '_runnerintarget.{}'.format(self.method_processcls.cls)) as p:
             self.process_cls = p
             yield self
 

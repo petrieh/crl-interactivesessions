@@ -588,7 +588,7 @@ class RemoteRunner(object):
                                   source_file,
                                   to_target,
                                   destination_dir='.',
-                                  mode='0755',
+                                  mode=oct(0o755),
                                   timeout=3600):
         """
         Copy file from one remote target to another.
@@ -680,7 +680,7 @@ class RemoteRunner(object):
     def copy_file_to_target(self,
                             source_file,
                             destination_dir='.',
-                            mode='0755',
+                            mode=oct(0o755),
                             target='default',
                             timeout=3600):
         """
@@ -727,7 +727,7 @@ class RemoteRunner(object):
     def copy_directory_to_target(self,
                                  source_dir,
                                  target_dir='.',
-                                 mode='0755',
+                                 mode=oct(0o755),
                                  target='default',
                                  timeout=3600):
         """
@@ -774,7 +774,7 @@ class RemoteRunner(object):
 
     def create_directory_in_target(self,
                                    path,
-                                   mode='0755',
+                                   mode=oct(0o755),
                                    target='default',
                                    timeout=3600):
         """

@@ -41,8 +41,7 @@ class MsgCaches(object):
             return self._msgcaches[uid].msg
         if uid in self._removed:
             raise MsgCachesAlreadyRemoved()
-        else:
-            raise MsgCachesNotFound()
+        raise MsgCachesNotFound()
 
     @property
     def timeout(self):
