@@ -107,7 +107,7 @@ def test_copy_file_between_targets(copyrunner,
                      os.getcwd(), source, expected_target)
         assert filecmp.cmp(source, expected_target)
         assert oct(os.stat(
-            expected_target).st_mode & 0777) == mode or is_windows()
+            expected_target).st_mode & 0o777) == mode or is_windows()
 
     assert "write(*('sourcecontent',)" not in intcaplog.text
 
@@ -151,7 +151,7 @@ def test_copy_file_to_target(copyrunner,
 
         assert filecmp.cmp(source, expected_target)
         assert oct(os.stat(
-            expected_target).st_mode & 0777) == mode or is_windows()
+            expected_target).st_mode & 0o777) == mode or is_windows()
 
     assert "write(*('sourcecontent',)" not in intcaplog.text
 
@@ -159,7 +159,7 @@ def test_copy_file_to_target(copyrunner,
 @pytest.mark.parametrize('create_target_dir_before', [True, False])
 @pytest.mark.parametrize('target_dir', [
     'target', os.path.join('target', 'new')])
-@pytest.mark.parametrize('mode', ['0777', '755', '0444'])
+@pytest.mark.parametrize('mode', ['0o777', '755', '0444'])
 def test_copy_directory_to_target(copyrunner,
                                   sourcedir,
                                   target,
@@ -181,7 +181,7 @@ def test_copy_directory_to_target(copyrunner,
 
 
 @pytest.mark.parametrize('path,mode', [
-    ('target', '0777'),
+    ('target', '0o777'),
     (os.path.join('target', 'new'), '0755'),
     ('target', '0444')])
 def test_create_directory_in_target(copyrunner,

@@ -2,16 +2,19 @@
 import sys
 import traceback
 import itertools
+import base64
+import logging
 from collections import namedtuple
 
 if 'exceptions' not in globals():
     from . import exceptions
+    from . import compatibility
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
-CHILD_MODULES = [exceptions]
-
+CHILD_MODULES = [exceptions, compatibility]
+LOGGER = logging.getLogger(__name__)
 
 class MsgclsMsgid(namedtuple('MsgclsMgsid', ['msgcls', 'msgid'])):
     pass
@@ -25,7 +28,7 @@ class MsgMap(object):
         self._count = itertools.count()
 
     def add_msgcls(self, msgcls):
-        msgid = self._count.next()
+        msgid = next(self._count)
         self._msgclses[msgid] = msgcls
         self._msgclsmsgids[msgcls.__name__] = MsgclsMsgid(msgcls, msgid)
 
@@ -44,7 +47,7 @@ class Serializable(object):
 
 class NoArg(Serializable):
     def serialize(self):
-        return ''
+        return b''
 
 
 NOARG = NoArg()
@@ -54,11 +57,14 @@ class MsgBase(object):
 
     _msgmap = MsgMap()
     _uid_iter = itertools.count()
-    _serialization_tmpl = '{msgid}:{uid}:{serialized_arg}'
 
     def __init__(self):
         self._uid = None
         self._arg = None
+
+    def __str__(self):
+        return '{cls}(uid={uid}, arg={arg})'.format(
+            cls=self.__class__.__name__, uid=self._uid, arg=self._arg)
 
     def set_arg(self, arg):
         self._arg = arg
@@ -85,27 +91,47 @@ class MsgBase(object):
         return True
 
     def serialize(self):
-        return self._serialization_tmpl.format(msgid=self.msgid,
-                                               uid=self.uid,
-                                               serialized_arg=self.serialize_arg())
+        LOGGER.debug('==== MsgBase serialize starting')
+        return compatibility.string_conversion_to_bytes(self.msgid) + \
+               b':' + \
+               compatibility.string_conversion_to_bytes(self.uid) + \
+               b':' + \
+               self.serialize_arg()
 
     @classmethod
     def deserialize(cls, s):
-        msgid, uid, serialized_args = s.split(':', 2)
+        msgid, uid, serialized_args = s.split(b':', 2)
         msgcls = cls._msgmap.get_msgcls(int(msgid))
         args = msgcls.deserialize_arg(serialized_args)
         return msgcls.create_with_uid_and_args(int(uid), args)
 
     def serialize_arg(self):
-        """Returns serialization of *_arg*."""
+        """Returns serialization of *_arg*.
+        The default serialization expects bytes or string."""
         return (self._arg.serialize()
                 if isinstance(self._arg, Serializable) else
-                self._arg)
+                self._serialize_string_or_bytes_arg())
+
+    def _serialize_string_or_bytes_arg(self):
+        return self._serialize_string_or_bytes(self._arg)
+
+    @staticmethod
+    def _serialize_string_or_bytes(s):
+        LOGGER.debug('_serialize_string_or_bytes: %s', s)
+        return base64.b64encode(
+            b's' + s.encode('utf-8')
+            if compatibility.PY3 and isinstance(s, str) else
+            b'b' + s)
 
     @classmethod
     def deserialize_arg(cls, serialized_arg):
         """Returns arg from serialized *serialized_arg*"""
-        return serialized_arg
+        if not serialized_arg:
+            return NOARG
+        decoded_arg = base64.b64decode(serialized_arg)
+        return (decoded_arg[1:].decode('utf-8')
+                if decoded_arg[0] == ord(b's') else
+                decoded_arg[1:])
 
     @classmethod
     def create_reply(cls, msg, arg=NOARG):
@@ -113,7 +139,7 @@ class MsgBase(object):
 
     @classmethod
     def create(cls, arg=NOARG):
-        return cls.create_with_uid_and_args(uid=cls._uid_iter.next(),
+        return cls.create_with_uid_and_args(uid=next(cls._uid_iter),
                                             arg=arg)
 
     @classmethod
@@ -143,7 +169,16 @@ class ExecCommandReply(MsgBase):
 
     def serialize_arg(self):
         outobj = self._arg
-        return '' if outobj is None else repr(outobj)
+
+        return self._serialize_string_or_bytes(self._get_string_or_bytes(outobj))
+
+    @staticmethod
+    def _get_string_or_bytes(s):
+        if isinstance(s, (bytes, str)):
+            return s
+        if s is None:
+            return b''
+        return repr(s)
 
 
 class ErrorObj(object):
@@ -209,7 +244,8 @@ class FatalPythonErrorReply(MsgBase):
 
     @classmethod
     def deserialize_arg(cls, s):
-        raise exceptions.FatalPythonError(s)
+        raise exceptions.FatalPythonError(
+            super(FatalPythonErrorReply, cls).deserialize_arg(s))
 
 
 class ServerIdRequest(MsgBase):

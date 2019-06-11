@@ -1,18 +1,23 @@
+import logging
 import os
 import sys
 import pickle
 import base64
-import StringIO  # pylint: disable=import-error
 import traceback
 import threading
 import fcntl
+import struct
+from io import BytesIO
 from contextlib import contextmanager
 from functools import wraps
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
-TOKEN = '+7_<sf80UBtd%umz'
+TOKEN = b'+7_<sf80UBtd%umz'
+LOGGER = logging.getLogger(__name__)
+SIZE_PACKER = struct.Struct('!I')
+PY3 = (sys.version_info.major == 3)
 
 
 def get_python_file_path():
@@ -24,6 +29,8 @@ def get_python_file_path():
 class _Container(object):
     pass
 
+class RunnerHandlerUnableToDeserialize(Exception):
+    pass
 
 _PROXY_CONTAINER = _Container()
 
@@ -33,11 +40,22 @@ def exec_in_module(code, module):
 
 
 class FileHandle(object):
+    _size_packer = struct.Struct('!I')
 
     def __init__(self, handle):
         self.handle = handle
+        self._f = open('/tmp/test.log', 'a')
+        self._f.write('handle = {}, mode = {}'.format(self.handle, self.handle.mode))
+        self._f.flush()
         self.infile = sys.stdin
         self.outfile = None
+
+    def __del__(self):
+        self._f.close()
+
+    def _log(self, s):
+        self._f.write(s)
+        self._f.flush()
 
     def set_io_outfile(self, outfile):
         self.outfile = outfile
@@ -59,15 +77,16 @@ class FileHandle(object):
             fcntl.fcntl(infd, fcntl.F_SETFL, fl)
 
     def _write_stdout_with_flush(self, buf):
-        self.outfile.write(buf)
+        if sys.version_info.major == 3:
+            self.outfile.buffer.write(buf)
+        else:
+            self.outfile.write(buf)
         self.outfile.flush()
 
     def read(self, size):
         buf = self.handle.read(size)
-        self._write_stdout_with_flush(b'{token}{lenbuf:011d}{buf}'.format(
-            token=TOKEN,
-            lenbuf=len(buf),
-            buf=buf))
+        ret = TOKEN + SIZE_PACKER.pack(len(buf)) + buf
+        self._write_stdout_with_flush(ret)
 
 
 class _Response(object):
@@ -103,7 +122,7 @@ class _Response(object):
         return self.get_response_with_timeout(self.timeout)
 
     def get_response_with_timeout(self, timeout):
-        if timeout >= 0 or timeout is None:
+        if timeout is None or timeout >= 0:
             self.thread.join(timeout)
         return self._get_response_from_thread(timeout)
 
@@ -116,11 +135,12 @@ class _Response(object):
 
     def _store_and_return_response(self):
         self.runnerhandler.add_response(self.response_id, self)
-        return self._serialize('timeout', self.response_id)
+        return self._serialize(b'timeout', self.response_id)
 
     def _serialize(self, steeringstring, obj):
-        return base64.b64encode(self.runnerhandler.pickler.dumps(
-            (steeringstring, self.runnerhandler.pickler.dumps(obj))))
+        return self.runnerhandler.pickler.dumps(
+            (steeringstring, self.runnerhandler.pickler.dumps(obj, protocol=0)
+            ), protocol=0)
 
 
 def responsethread(function, *args, **kwargs):
@@ -140,6 +160,11 @@ class _RunnerHandler(object):
         self.pickler = None
         self._handled_types = None
         self._responses = dict()
+        self._head_methods = {'u': self._unicode,
+                              's': self._to_bytes,
+                              'S': self._to_string,
+                              'B': self._to_bytes}
+
 
     def initialize(self,
                    contextmgr=None,
@@ -147,7 +172,15 @@ class _RunnerHandler(object):
                    handled_types=None):
         self.contextmgr = contextmgr or self.pickle_errors
         self.pickler = pickler
-        self._handled_types = [] if handled_types is None else handled_types
+        self._handled_types = (self._default_handled_types
+                               if handled_types is None else
+                               handled_types)
+
+    @property
+    def _default_handled_types(self):
+        return ([None, int, float, str, bytes]
+                if sys.version_info.major == 3 else
+                [None, int, float, long, unicode, str])
 
     def add_response(self, response_id, response):
         self._responses[response_id] = response
@@ -162,9 +195,39 @@ class _RunnerHandler(object):
             pass
 
     @staticmethod
-    def _deserialize(content, unpickler=pickle.Unpickler):
-        outputstream = StringIO.StringIO(base64.b64decode(content))
+    def deserialize(content, unpickler=pickle.Unpickler):
+        outputstream = BytesIO(content)
         return unpickler(outputstream).load()
+
+    @staticmethod
+    def _unicode(s):
+        try:
+            return unicode(s)
+        except NameError:
+            return str(s)
+
+    @staticmethod
+    def _to_bytes(s):
+        return s.encode('utf-8') if PY3 and isinstance(s, str) else s
+
+    @staticmethod
+    def _to_string(b):
+        return b.decode('utf-8') if PY3 and isinstance(b, bytes) else b
+
+    def deserialize_string(self, content):
+        head, body = (self._to_string(content[0]), base64.b64decode(content[1:]))
+        try:
+            return self._head_methods[head](body)
+        except KeyError:
+            raise RunnerHandlerUnableToDeserialize(
+                'String head {head!r} was not in known heads {keys}'.format(
+                    head=head,
+                    keys=self._head_methods.keys()))
+
+    def serialize_string(self, content, strtype):
+        head = self._to_bytes(strtype)
+        body = base64.b64encode(self._to_bytes(content))
+        return self._to_string(head + body)
 
     @staticmethod
     def _extract_tb():
@@ -178,11 +241,11 @@ class _RunnerHandler(object):
 
         except Exception as e:  # pylint: disable=broad-except
             e.trace = self._extract_tb()
-            response.set_response(('exception', e))
+            response.set_response((b'exception', e))
 
     @responsethread
     def run(self, code, locals_):
-        return ('run', self._get_object(code, locals_))
+        return (b'run', self._get_object(code, locals_))
 
     @responsethread
     def assign_and_run(self, handle, code, locals_):
@@ -201,7 +264,7 @@ class _RunnerHandler(object):
     def _get_handled(self, code, locals_):
         obj = self._get_object(code, locals_)
         is_handled = self._is_in_handled_types(obj)
-        steeringstring = 'handled' if is_handled else 'nothandled'
+        steeringstring = b'handled' if is_handled else b'nothandled'
         return (steeringstring, obj if is_handled else None)
 
     def _is_in_handled_types(self, obj):

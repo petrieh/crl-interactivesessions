@@ -22,7 +22,7 @@ class MsgCaches(object):
         self._msgcaches[msg.uid] = MsgCache(msg, self._retry, send_msg=self._send_msg)
 
     def send_expired(self):
-        for uid, c in self._msgcaches.items():
+        for uid, c in list(self._msgcaches.items()):
             c.send_expired(self._elapsed)
             if c.timeout == Infinite():
                 self._remove(uid)
@@ -97,7 +97,9 @@ class ConsecutiveSet(object):
             self._min = i
 
     def __contains__(self, i):
-        return self._min <= i <= self._max and i not in self._missing_nbrs
+        return (self._min is not None and
+                self._min <= i <= self._max and
+                i not in self._missing_nbrs)
 
     def __len__(self):
         return len(self._missing_nbrs)
@@ -125,7 +127,7 @@ class MsgCache(object):
             self._timeout -= elapsed
         else:
             try:
-                self._timeout = self._timeouts.next()
+                self._timeout = next(self._timeouts)
                 self._send_msg(self.msg)
             except StopIteration:
                 self._timeout = Infinite()

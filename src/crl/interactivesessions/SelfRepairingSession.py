@@ -3,7 +3,7 @@ import time
 import uuid
 import os
 from pickle import Unpickler
-import StringIO
+from io import StringIO
 import base64
 import itertools
 import traceback
@@ -28,7 +28,7 @@ class FailedToRunInteractiveHandler(Exception):
 
 
 class UnexpectedTerminalOutput(Exception):
-
+    # pylint: disable=unsubscriptable-object
     def __str__(self):
         return ("Unexpected terminal output in run {0} ({1}): '{2}',"
                 " {3}: {4}".format(self.args[0],
@@ -172,7 +172,7 @@ class LocalShellSubprocess(ShellSubprocess.ShellSubprocess):
     def _get_result_wrapper_from_output(self, output):
         with self.unify_deserialize_errors(output):
             decoded_output = base64.b64decode(output)
-            outputstream = StringIO.StringIO(decoded_output)
+            outputstream = StringIO(decoded_output)
             return ShellSubprocessPickler(outputstream).load()
 
     def _get_run_creation_command(self, timeout):

@@ -10,7 +10,7 @@ from crl.interactivesessions.InteractiveSession import (
     InteractiveSession)
 from crl.interactivesessions.runnerexceptions import (
     SessionInitializationFailed)
-
+from .shells.remotemodules.compatibility import to_string
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
@@ -154,13 +154,14 @@ class AutoRecoveringTerminal(object):
             try:
                 return function()
             except broken_exceptions as e:
+                exc = e
                 logger.debug('%s: %s\nBacktrace: \n%s',
                              e.__class__.__name__, e,
                              ''.join(traceback.format_list(
                                  traceback.extract_tb(sys.exc_info()[2]))))
                 time.sleep(self._sleep_between_tries)
 
-        raise SessionInitializationFailed(e)
+        raise SessionInitializationFailed(exc)
 
     def _init_session(self):
         self.close()

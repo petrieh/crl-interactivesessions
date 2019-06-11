@@ -1,6 +1,5 @@
 # pylint: disable=unused-argument,protected-access
 import pickle
-import base64
 import pytest
 import mock
 from fixtureresources.mockfile import MockFile
@@ -159,13 +158,15 @@ def test_run_raise_padding(runnerterminal,
                            mock_run_in_session_raise_padding):
     with pytest.raises(RunnerTerminalSessionBroken):
         runnerterminal.run('cmd')
-    assert mock_run_in_session_raise_padding.call_count == 2
+    assert mock_run_in_session_raise_padding.call_count == 1
 
 
 def test_mock_run_in_session_raise_padding_once(
         runnerterminal, mock_run_in_session_raise_padding_once):
-    runnerterminal.run('cmd')
-    assert mock_run_in_session_raise_padding_once.call_count == 2
+    with pytest.raises(RunnerTerminalSessionBroken) as excinfo:
+        runnerterminal.run('cmd')
+    assert 'Incorrect padding' in str(excinfo.value)
+    assert mock_run_in_session_raise_padding_once.call_count == 1
 
 
 def test_run_raise_no_padding(runnerterminal,
@@ -199,8 +200,7 @@ def test_run_python_raises(runnerterminal,
 
     cs = mock_session.get_session.return_value.current_shell.return_value
     dumpexc = pickle.dumps(ExampleException('message', trace=trace))
-    cs.exec_command.return_value = base64.b64encode(
-        pickle.dumps(('exception', dumpexc)))
+    cs.exec_command.return_value = pickle.dumps((b'exception', dumpexc))
 
     with pytest.raises(ExampleException) as excinfo:
         runnerterminal.run_python('cmd')

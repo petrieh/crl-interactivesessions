@@ -1,6 +1,6 @@
-import StringIO
 import mock
 import pytest
+from io import StringIO
 from crl.interactivesessions.SelfRepairingSession import (
     Unpickler, ShellSubprocessPickler)
 from crl.interactivesessions.ShellSubprocess import (
@@ -12,7 +12,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 
 @pytest.fixture()
 def shellsubprocesspickler():
-    return ShellSubprocessPickler(StringIO.StringIO())
+    return ShellSubprocessPickler(StringIO())
 
 
 @pytest.fixture()

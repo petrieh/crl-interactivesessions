@@ -1,4 +1,4 @@
-import InteractiveSession
+from . import InteractiveSession
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
