@@ -6,7 +6,8 @@ from collections import namedtuple
 from contextlib import contextmanager
 from crl.interactivesessions._terminalpools import _TerminalPools
 from .runnerexceptions import RemoteTimeout
-from .shells.remotemodules.compatibility import to_string
+from .shells.remotemodules.compatibility import (
+    to_string, py23_unic, unic_to_string)
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
@@ -17,26 +18,14 @@ LOGGER = logging.getLogger(__name__)
 class RunResult(namedtuple('RunResult', ['status', 'stdout', 'stderr'])):
     __slots__ = ()
 
-    def unic(self, out):
-        try:
-            # Convert fist to unicode and add 'utf-8' encoding as __str__ must
-            # know the encoding.
-            return self._encode(unicode(out))
-        # NameError for Python3 compatibility
-        except (ValueError, TypeError, NameError):
-            return to_string(out)
-
-    @staticmethod
-    def _encode(x):
-        return x.encode('utf-8')
 
     def __str__(self):
         return ('\n exit status:   {status}\n'
                 ' stdout:\n {stdout}\n'
                 ' stderr:\n {stderr}\n').format(
                     status=str(self.status),
-                    stdout=self.unic(self.stdout),
-                    stderr=self.unic(self.stderr))
+                    stdout=unic_to_string(py23_unic(self.stdout)),
+                    stderr=unic_to_string(py23_unic(self.stderr)))
 
 
 def rstrip_runresult(result):

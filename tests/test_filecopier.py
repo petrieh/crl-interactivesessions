@@ -74,10 +74,10 @@ def test_osproxies_raises_attributeerror(mock_terminal):
 @pytest.mark.parametrize('mode', [oct(0o777), oct(0o444), oct(0o755)])
 def test_localfile_chmod(tmpdir, mode):
     with tmpdir.as_cwd():
-        l = _LocalFile('local')
-        with l.open('w') as f:
+        lcl = _LocalFile('local')
+        with lcl.open('w') as f:
             f.write('content')
-        l.chmod(mode)
+        lcl.chmod(mode)
         with open('local') as f:
             assert f.read() == 'content'
         assert stat.S_IMODE(os.stat('local').st_mode) == int(mode, 8)

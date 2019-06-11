@@ -144,14 +144,14 @@ def test_mock_run_in_session_raise_padding_error(
         runnerterminal, mock_run_in_session_raise_padding):
     with pytest.raises(TypeError) as excinfo:
         runnerterminal._run_in_session()
-    assert 'Incorrect padding' in str(excinfo)
+    assert 'Incorrect padding' in str(excinfo.value)
 
 
 def test_mock_run_in_session_raise_padding_error_once(
         runnerterminal, mock_run_in_session_raise_padding_once):
     with pytest.raises(TypeError) as excinfo:
         runnerterminal._run_in_session()
-    assert 'Incorrect padding' in str(excinfo)
+    assert 'Incorrect padding' in str(excinfo.value)
 
 
 def test_run_raise_padding(runnerterminal,

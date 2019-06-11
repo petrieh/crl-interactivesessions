@@ -74,18 +74,18 @@ def postcorrupt(s):
     {'probability_of_lost': '1', 'modifier': precorrupt},
     {'probability_of_lost': '1', 'modifier': postcorrupt}])
 def mock_strcomm(request):
-    l = LostStrComm(**request.param)
+    lst = LostStrComm(**request.param)
 
     def strcomm_fact(*args, **kwargs):
         s = StrComm(*args, **kwargs)
-        l.set_strcomm(s)
-        return l
+        lst.set_strcomm(s)
+        return lst
 
     with customterminalcomm_context():
         with mock.patch('crl.interactivesessions.shells.'
                         'remotemodules.msgmanager.StrComm') as p:
             p.side_effect = strcomm_fact
-            yield l
+            yield lst
 
 
 @contextmanager
