@@ -335,7 +335,10 @@ class Shell(object):
 
         with self._suppress_timeout_exception(silent=True):
             while True:
-                output += self._read_str_nonblocking(size=1024, timeout=chunk_timeout)
+                ret = self._read_str_nonblocking(size=1024, timeout=chunk_timeout)
+                LOGGER.log(_LOGLEVEL, "_read_str_nonblocking(size=1024, timeout=chunk_timeout):\
+                          ret == %s", ret)
+                output += ret
         self._terminal.buffer = b''
 
         if output:
@@ -344,7 +347,11 @@ class Shell(object):
         return output
 
     def _read_str_nonblocking(self, size, timeout):
-        return to_string(self._terminal.read_nonblocking(size=size, timeout=timeout))
+        ret = self._terminal.read_nonblocking(size=size, timeout=timeout)
+        LOGGER.log(_LOGLEVEL, "read_nonblocking(size=%s, timeout=%s): ret == %s",
+                   size, timeout, ret)
+        LOGGER.log(_LOGLEVEL, "ret in string == %s", to_string(ret))
+        return to_string(ret)
 
     def _read_until_prompt(self, timeout=-1, suppress_timeout=False):
         """Read the output of the previous command."""

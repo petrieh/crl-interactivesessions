@@ -2,5 +2,4 @@
 ssh-keygen -A
 /usr/sbin/sshd
 umask 0000
-bash
-#tox -e  combined-robottests -- -V robottests/targethosts.py --include remotecompare
+tox -e  combined-robottests -- -V robottests/targethosts.py --include remotecompare

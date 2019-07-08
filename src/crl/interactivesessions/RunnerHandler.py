@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import pickle
@@ -15,7 +14,6 @@ from functools import wraps
 __copyright__ = 'Copyright (C) 2019, Nokia'
 
 TOKEN = b'+7_<sf80UBtd%umz'
-LOGGER = logging.getLogger(__name__)
 SIZE_PACKER = struct.Struct('!I')
 PY3 = (sys.version_info.major == 3)
 
@@ -46,18 +44,8 @@ class FileHandle(object):
 
     def __init__(self, handle):
         self.handle = handle
-        self._f = open('/tmp/test.log', 'a')
-        self._f.write('handle = {}, mode = {}'.format(self.handle, self.handle.mode))
-        self._f.flush()
         self.infile = sys.stdin
         self.outfile = None
-
-    def __del__(self):
-        self._f.close()
-
-    def _log(self, s):
-        self._f.write(s)
-        self._f.flush()
 
     def set_io_outfile(self, outfile):
         self.outfile = outfile
