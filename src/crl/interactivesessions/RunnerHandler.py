@@ -185,9 +185,9 @@ class _RunnerHandler(object):
         except KeyError:
             pass
 
-    @staticmethod
-    def deserialize(content, unpickler=pickle.Unpickler):
-        outputstream = BytesIO(content)
+    @classmethod
+    def deserialize(cls, content, unpickler=pickle.Unpickler):
+        outputstream = BytesIO(cls._to_bytes(content))
         return unpickler(outputstream).load()
 
     @staticmethod

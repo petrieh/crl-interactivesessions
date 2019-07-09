@@ -5,7 +5,6 @@ import itertools
 import base64
 import logging
 from collections import namedtuple
-
 if 'exceptions' not in globals():
     from . import exceptions
     from . import compatibility
@@ -154,7 +153,7 @@ class CommandMsgBase(MsgBase):
 
     @property
     def cmd(self):
-        return self._arg
+        return compatibility.to_string(self._arg)
 
 
 class ExecCommandRequest(CommandMsgBase):

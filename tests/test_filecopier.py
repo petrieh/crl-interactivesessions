@@ -86,8 +86,8 @@ def test_localfile_chmod(tmpdir, mode):
 def test_localfile_with_existing_destination_dir(tmpdir):
     with tmpdir.as_cwd():
         _LocalFile(os.path.join('dir', 'f')).makedirs()
-        l = _LocalFile('dir', source_file='source')
-        with l.open('w') as f:
+        lclf = _LocalFile('dir', source_file='source')
+        with lclf.open('w') as f:
             f.write('content')
         with open(os.path.join('dir', 'source')) as f:
             assert f.read() == 'content'

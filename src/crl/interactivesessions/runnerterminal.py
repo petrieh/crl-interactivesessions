@@ -625,7 +625,7 @@ class RunnerTerminal(object):
         self.run("_handlercode = compile({handler_content}, "
                  "'RunnerHandler', 'exec')".format(
                      handler_content=(
-                         "pickle.loads({0!r})".format(pickle.dumps(
+                         "pickle.loads(b{0!r})".format(pickle.dumps(
                              handler_content, protocol=0), protocol=0))))
         self.run('runnerhandlerns = {}')
         self.run("exec(_handlercode, runnerhandlerns)")
