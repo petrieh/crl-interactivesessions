@@ -1,8 +1,8 @@
 import os
 from contextlib import contextmanager
 import logging
-from crl.interactivesessions._terminalpools import _TerminalPools
-from crl.interactivesessions.pythonterminal import PythonTerminal
+from ._terminalpools import _TerminalPools
+from .pythonterminal import PythonTerminal
 from ._targetproperties import _TargetProperties
 from ._runnerintarget import _RunnerInTarget
 from ._filecopier import (
@@ -499,8 +499,8 @@ class RemoteRunner(object):
 
         **Note**
 
-        The operating system of the target may reuse the PID in case the executable
-        is terminated.
+        The operating system of the target may reuse the PID in case the
+        executable is terminated.
 
         **Example:**
 

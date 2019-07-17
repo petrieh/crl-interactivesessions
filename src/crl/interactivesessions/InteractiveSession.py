@@ -98,11 +98,11 @@ from crl.interactivesessions.runnerterminal import RunnerTerminalSessionBroken
 from .interactivesessionexceptions import InteractiveSessionError
 from .shells.keyauthenticatedsshshell import ShellStartError
 # pylint: disable=protected-access,unused-import
-from .shells.bashshell import BashShell
-from .shells.namespaceshell import NamespaceShell
-from .shells.pythonshell import PythonShell
-from .shells.shell import Shell
-from .shells.sshshell import SshShell
+from .shells.bashshell import BashShell  # noqa: F401
+from .shells.namespaceshell import NamespaceShell  # noqa: F401
+from .shells.pythonshell import PythonShell  # noqa: F401
+from .shells.shell import Shell  # noqa: F401
+from .shells.sshshell import SshShell  # noqa: F401
 # pylint: enable=unused-import
 
 
@@ -316,7 +316,7 @@ class InteractiveSession(object):
         """
         try:
             return self.shells[-1]
-        except:
+        except Exception:
             raise RunnerTerminalSessionBroken(
                 "InteractiveSession is already closed."
             )

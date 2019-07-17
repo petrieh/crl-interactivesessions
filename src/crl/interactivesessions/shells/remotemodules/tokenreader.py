@@ -11,6 +11,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 CHILD_MODULES = [compatibility]
 LOGGER = logging.getLogger(__name__)
 
+
 class MemoizeSingleArg(object):
     def __init__(self, f):
         self._f = f

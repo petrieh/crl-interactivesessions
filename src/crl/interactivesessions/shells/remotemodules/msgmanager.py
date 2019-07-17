@@ -52,9 +52,8 @@ class StrComm(object):
         return self._tokenreader_int
 
     def write_str(self, s):
-        self.comm.write(self._token + \
-                        compatibility.to_bytes(self.len_tmpl.format(s_len=len(s))) + \
-                        s)
+        text = self._token + compatibility.to_bytes(self.len_tmpl.format(s_len=len(s)))
+        self.comm.write(text + s)
 
     def read_str(self):
         while True:

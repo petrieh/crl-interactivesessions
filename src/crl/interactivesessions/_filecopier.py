@@ -19,22 +19,26 @@ BUFFER_SIZE = 4092
 
 
 class CompatibilityFile(object):
-    """Class which callable dir attributes are like Python2 dir(file) callables"""
-    close = \
-    fileno = \
-    flush = \
-    isatty = \
-    next = \
-    read = \
-    readinto = \
-    readline = \
-    readlines = \
-    seek = \
-    tell = \
-    truncate = \
-    write = \
-    writelines = \
-    xreadlines = lambda: None
+    """Class which
+    h callable dir attributes are like Python2 dir(file) callables"""
+    @staticmethod
+    def __noop__():
+        return None
+    close = __noop__
+    fileno = __noop__
+    flush = __noop__
+    isatty = __noop__
+    next = __noop__
+    read = __noop__
+    readinto = __noop__
+    readline = __noop__
+    readlines = __noop__
+    seek = __noop__
+    tell = __noop__
+    truncate = __noop__
+    write = __noop__
+    writelines = __noop__
+    xreadlines = __noop__
 
 
 class RemoteFileReadingFailed(Exception):
@@ -114,7 +118,6 @@ class _RemoteFileProxy(object):
                     m=maxsize))
         return size
 
-
     @contextmanager
     def timeouthandling(self):
         try:
@@ -138,7 +141,9 @@ class _RemoteFileProxy(object):
         encoded_buf = base64.b64encode(buf)
         with self.timeouthandling():
             self._write(encoded_buf)
+
     def _write(self, buf):
+
         self.shell.send_command('{proxy_handle}.write({lenbuf})'.format(
             proxy_handle=self.proxy_handle,
             lenbuf=len(buf)))
@@ -239,8 +244,7 @@ class _LocalFile(object):
             destination_file)
 
     def _is_directory(self, path):
-        return (self._path.basename(path) == '' or
-                self._is_existing_directory(path))
+        return self._path.basename(path) == '' or self._is_existing_directory(path)
 
     @staticmethod
     def _is_existing_directory(path):
@@ -303,7 +307,6 @@ class _RemoteFile(_LocalFile):
         return _RemoteFileProxy(handle,
                                 terminal=self.terminal,
                                 timeout=self.timeout)
-
 
 
 class _RemoteScriptRemoteFile(_RemoteFile):

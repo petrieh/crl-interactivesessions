@@ -36,10 +36,10 @@ Remove Files In Target
     RemoteRunner.Execute Command In Target    rm ${file} ${dir}  target=${target}
 
 Remove Files Locally And In Target
-    Run Process  rm  targetlocal  remoterunnerfile  remotescriptfile 
+    Run Process  rm  targetlocal  remoterunnerfile  remotescriptfile
     Remove Files In Target  target1  targetlocal  .
     Remove Files In Target  target2  targetlocal  .
-     
+
 
 Create Random File
     filehelper.Create Random File    targetlocal    ${TESTFILESIZE}
@@ -56,12 +56,12 @@ Set RemoteRunner Targets
     ...                        name=target2
 
 Set RemoteScript Targets
-    
+
     RemoteScript.Set Target    host=${HOST1['host']}
     ...                        username=${HOST1['user']}
     ...                        password=${HOST1['password']}
     ...                        name=target1
-    
+
     RemoteScript.Set Target    host=${HOST2['host']}
     ...                        username=${HOST2['user']}
     ...                        password=${HOST2['password']}
@@ -85,7 +85,7 @@ Compare Execute Command In Target
     Compare Results    ${runner}    ${script}
 
 Compare Copy Directory To Target
-    [Arguments]    ${target}    
+    [Arguments]    ${target}
     Run Process    mkdir -p tmp && cp * tmp/    shell=${True}
     ${runner}=     RemoteRunner.Copy Directory To Target
     ...    tmp/
@@ -95,7 +95,6 @@ Compare Copy Directory To Target
     # Exact feature parity with RemoteScript with this setup cannot be tested
     [Teardown]    RemoteRunner.Execute Command In Target    target=${target}
     ...    rm -rf /tmp/runner
-    
 
 Compare Create Directory In Target
     [Arguments]    ${target}
@@ -121,15 +120,15 @@ Compare Create Directory In Target
 
 Compare Execute Background Command In Target
     [Arguments]    ${target}
-    :FOR    ${i}    IN RANGE    2
-    \    RemoteRunner.Execute Background Command In Target
-    	 ...    echo out;>&2 echo err;sleep 10
-    	 ...    ${target}
-    	 ...    test
-    \    Sleep    1
-    \	 RemoteRunner.Kill Background Execution    test
-    \	 ${runner}=    RemoteRunner.Wait Background Execution    test
-
+    FOR    ${i}    IN RANGE    2
+        RemoteRunner.Execute Background Command In Target
+         ...    echo out;>&2 echo err;sleep 10
+         ...    ${target}
+         ...    test
+         Sleep    1
+         RemoteRunner.Kill Background Execution    test
+         ${runner}=    RemoteRunner.Wait Background Execution    test
+    END
     # No comparison with the RemoteScript can be done because there is a bugs
     # in the RemotScript background execution functionality Using instead
     # comparison with results which RemoteScript should ideally return
@@ -192,8 +191,8 @@ Templated Compare File Copying
 Templated Compare Execute Command In Target
     [Template]  Compare Execute Command In Target
     target1
-    target2 
-   
+    target2
+
 
 Templated Compare Copy Directory To Target
     [Template]  Compare Execute Command In Target

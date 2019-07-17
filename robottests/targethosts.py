@@ -17,4 +17,3 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 HOST1 = {'host': 'localhost', 'user': 'python2user', 'password': 'python2testing'}
 HOST2 = {'host': 'localhost', 'user': 'python3user', 'password': 'python3testing'}
 SUDOSHELL = {'shellname': 'BashShell', 'cmd': 'sudo /bin/bash'}
-

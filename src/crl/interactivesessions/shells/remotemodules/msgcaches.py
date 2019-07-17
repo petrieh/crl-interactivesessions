@@ -96,9 +96,8 @@ class ConsecutiveSet(object):
             self._min = i
 
     def __contains__(self, i):
-        return (self._min is not None and
-                self._min <= i <= self._max and
-                i not in self._missing_nbrs)
+        missing_test = i not in self._missing_nbrs
+        return self._min is not None and self._min <= i <= self._max and missing_test
 
     def __len__(self):
         return len(self._missing_nbrs)

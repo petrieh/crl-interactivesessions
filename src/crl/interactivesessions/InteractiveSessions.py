@@ -1,3 +1,4 @@
+# noqa: W605
 from . import InteractiveSession
 
 
@@ -249,7 +250,7 @@ class InteractiveSessions(object):
         Arguments should be given in pairs of expected prompt, and response to
         be given.
 
-        Example: see \'Exec Prompting Command\'
+        Example: see \`Exec Prompting Command\`
         """
         return InteractiveSession.Shell.create_responses_list(*args)
 

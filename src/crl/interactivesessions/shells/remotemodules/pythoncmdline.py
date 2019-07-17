@@ -3,6 +3,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
+
 class PythonCmdline(object):
     """Emulates Python interactive shell. The major difference of
     *exec_command* from executing the same command in the interactive shell is
@@ -49,8 +50,8 @@ class PythonCmdline(object):
             code_obj = get_code_object(self.current_cmd)
             self._multilinecmd = ''
         except (IndentationError, SyntaxError) as e:
-            if (e.args[0].startswith('unexpected EOF') or
-                    isinstance(e, IndentationError)):
+            indent_error = isinstance(e, IndentationError)
+            if (e.args[0].startswith('unexpected EOF') or indent_error):
                 self._multilinecmd += cmd + '\n'
                 # FIXME: raise specific expection instead
                 return None

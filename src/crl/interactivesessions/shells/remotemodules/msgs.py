@@ -15,6 +15,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 CHILD_MODULES = [exceptions, compatibility]
 LOGGER = logging.getLogger(__name__)
 
+
 class MsgclsMsgid(namedtuple('MsgclsMgsid', ['msgcls', 'msgid'])):
     pass
 
@@ -91,11 +92,14 @@ class MsgBase(object):
 
     def serialize(self):
         LOGGER.debug('==== MsgBase serialize starting')
-        return compatibility.string_conversion_to_bytes(self.msgid) + \
-               b':' + \
-               compatibility.string_conversion_to_bytes(self.uid) + \
-               b':' + \
-               self.serialize_arg()
+        return b''.join(self._serialize_strings())
+
+    def _serialize_strings(self):
+        yield compatibility.string_conversion_to_bytes(self.msgid)
+        yield b':'
+        yield compatibility.string_conversion_to_bytes(self.uid)
+        yield b':'
+        yield self.serialize_arg()
 
     @classmethod
     def deserialize(cls, s):
@@ -216,11 +220,11 @@ class ExecCommandErrorObj(Serializable):
 
     def __str__(self):
         return ('{name_and_msg} '
-                'size={l}\n{fulltbstr}\nExecuted command block:\n{cmd}'.format(
+                'size={lead}\n{fulltbstr}\nExecuted command block:\n{cmd}'.format(
                     fulltbstr=self._error.fulltbstr,
                     cmd=self._cmd_lines,
                     name_and_msg=self._error.name_and_msg,
-                    l=len(self._cmd)))
+                    lead=len(self._cmd)))
 
     def serialize(self):
         return str(self)

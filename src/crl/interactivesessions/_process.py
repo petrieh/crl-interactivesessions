@@ -18,7 +18,6 @@ LOGGER = logging.getLogger(__name__)
 class RunResult(namedtuple('RunResult', ['status', 'stdout', 'stderr'])):
     __slots__ = ()
 
-
     def __str__(self):
         return ('\n exit status:   {status}\n'
                 ' stdout:\n {stdout}\n'

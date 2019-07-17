@@ -140,9 +140,9 @@ class _RemoteProxy(object):
         self.remote_proxy_verify()
 
     def remote_proxy_verify(self):
+        proxy_id_not_session = self._remote_proxy_session_id != self._session.session_id
         if (self._remote_proxy_session_id != 'uninitialized' and (
-                self._remote_proxy_session_id is None or
-                self._remote_proxy_session_id != self._session.session_id)):
+                self._remote_proxy_session_id is None or proxy_id_not_session)):
             raise InvalidProxySession(
                 'Local session_id: {lid}, '
                 'remote session_id: {rid}'.format(
