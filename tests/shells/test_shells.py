@@ -169,8 +169,7 @@ def mock_sudoshell_bases(request):
 @pytest.fixture(scope='function')
 def mock_paramiko(request):
     return create_patch(mock.patch(
-        'crl.interactivesessions.shells.sshshell.paramiko'),
-                        request)
+        'crl.interactivesessions.shells.sshshell.paramiko'), request)
 
 
 @pytest.mark.usefixtures('mock_bash_bases', 'mock_detect_bash_prompt')

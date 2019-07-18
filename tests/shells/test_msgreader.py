@@ -26,8 +26,7 @@ def test_msgreader(timeout, expected, caplog):
 
     assert m.read_until_end() == 15
     s = set(['Set timeout for reading post-login banner message to {} seconds'.format(
-        timeout),
-             'Reset timeout for reading post-login banner message to 15 seconds'])
+        timeout), 'Reset timeout for reading post-login banner message to 15 seconds'])
     assert s.issubset({r.message for r in caplog.records})
 
 

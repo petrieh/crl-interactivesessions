@@ -33,8 +33,7 @@ def test_properties(mock_interactivesession):
 def test_property_exceptions(mock_interactivesession, remoterunner):
     with pytest.raises(AttributeError) as excinfo:
         remoterunner.set_target_property('default', 'not_existing', 'value')
-    assert (str(excinfo.value) ==
-            "Property 'not_existing' not in defaultproperties")
+    assert str(excinfo.value) == "Property 'not_existing' not in defaultproperties"
     with pytest.raises(AttributeError) as excinfo:
         _TargetProperties().get_property('not_existing')
     assert str(excinfo.value) == "Property 'not_existing' not found"

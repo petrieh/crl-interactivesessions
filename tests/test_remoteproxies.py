@@ -28,8 +28,7 @@ def runnerterminal():
 @pytest.fixture
 def mock_pythonshell(request):
     return create_patch(mock.patch(
-        'crl.interactivesessions.runnerterminal.MsgPythonShell'),
-                        request)
+        'crl.interactivesessions.runnerterminal.MsgPythonShell'), request)
 
 
 @pytest.fixture
@@ -150,10 +149,8 @@ def test_recursive_proxy_attribute_error(session_factory, runnerterminal):
     with pytest.raises(AttributeError) as excinfo:
         # pylint: disable=pointless-statement
         recproxy.attr
-
-    assert (excinfo.value.args[0] ==
-            "'{handle}' has no attribute 'attr'".format(
-                handle=recproxy.get_proxy_handle()))
+    res = "'{handle}' has no attribute 'attr'".format(handle=recproxy.get_proxy_handle())
+    assert excinfo.value.args[0] == res
 
 
 def test_get_recursive_proxy(session_factory, runnerterminal):
@@ -335,8 +332,8 @@ def _verify_proxy_response(proxy, response):
     assert 'Remote response not got yet from response {}'.format(
         response.response_id) == str(response)
 
-    assert (proxy.get_remote_proxy_response(response, timeout=0.6) ==
-            'return')
+    res = proxy.get_remote_proxy_response(response, timeout=0.6)
+    assert res == 'return'
 
 
 @pytest.mark.parametrize('timeout,is_recursive,is_async', [

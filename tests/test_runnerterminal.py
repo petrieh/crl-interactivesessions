@@ -57,8 +57,7 @@ def mock_run_in_session_raise_padding(request):
 
     return create_patch(mock.patch.object(
         RunnerTerminal, '_run_in_session',
-        side_effect=TypeError('Incorrect padding')),
-                        request)
+        side_effect=TypeError('Incorrect padding')), request)
 
 
 @pytest.fixture(scope='function')
@@ -66,8 +65,7 @@ def mock_run_in_session_raise_padding_once(request):
 
     return create_patch(mock.patch.object(
         RunnerTerminal, '_run_in_session',
-        side_effect=[TypeError('Incorrect padding'), '123']),
-                        request)
+        side_effect=[TypeError('Incorrect padding'), '123']), request)
 
 
 @pytest.fixture(scope='function')
@@ -75,8 +73,7 @@ def mock_run_in_session_raise_no_padding(request):
 
     return create_patch(mock.patch.object(
         RunnerTerminal, '_run_in_session',
-        side_effect=TypeError('Some other error')),
-                        request)
+        side_effect=TypeError('Some other error')), request)
 
 
 @pytest.fixture(scope='function')
@@ -217,8 +214,8 @@ def test_run_raises_runnerrerminalressionclosed():
 
 def test_get_proxy_object(runnerterminal,
                           mock_remoteproxy):
-    assert (runnerterminal.get_proxy_object('remote_object', 'local_spec') ==
-            mock_remoteproxy.mock)
+    rterminal_proxy_obj = runnerterminal.get_proxy_object('remote_object', 'local_spec')
+    assert rterminal_proxy_obj == mock_remoteproxy.mock
 
     mock_remoteproxy.mockinit.assert_called_once_with(
         runnerterminal,
