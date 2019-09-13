@@ -15,9 +15,8 @@ from crl.interactivesessions.shells.remotemodules.msgmanager import (
 from crl.interactivesessions.shells.remotemodules.compatibility import (
     PY3,
     to_bytes)
-from .loststrcomm import (
-    LostStrComm,
-    CustomTerminalComm)
+from .loststrcomm import LostStrComm
+from .customterminalcomm import CustomTerminalComm
 
 
 __copyright__ = 'Copyright (C) 2019, Nokia'
@@ -90,18 +89,22 @@ def postcorrupt(s):
 
 @pytest.fixture
 def mock_strcomm(request):
-    lst = LostStrComm(**request.param)
+    m = mockstrcomm_factory(**request.param)
 
     def strcomm_fact(*args, **kwargs):
         s = StrComm(*args, **kwargs)
-        lst.set_strcomm(s)
-        return lst
+        m.set_strcomm(s)
+        return m
 
     with customterminalcomm_context():
         with mock.patch('crl.interactivesessions.shells.'
                         'remotemodules.msgmanager.StrComm') as p:
             p.side_effect = strcomm_fact
-            yield lst
+            yield m
+
+
+def mockstrcomm_factory(mock_cls, **kwargs):
+    return mock_cls(**kwargs)
 
 
 @contextmanager
@@ -184,12 +187,16 @@ def test_exec_command_client_fails(client_rubbish_msgpythonshell,
 
 
 def some_lost_strcomm():
-    return pytest.mark.parametrize('mock_strcomm', [
-        {'probability_of_lost': '4/11'},
-        {'probability_of_lost': '4/11', 'modifier': lambda s: corrupt(30, s)},
-        {'probability_of_lost': '4/11', 'modifier': lambda s: corrupt(40, s)},
-        {'probability_of_lost': '1', 'modifier': precorrupt},
-        {'probability_of_lost': '1', 'modifier': postcorrupt}], indirect=True)
+    return pytest.mark.parametrize('mock_strcomm', get_mock_cls_kwargs(LostStrComm, [
+        {'probability_of_trouble': '4/11'},
+        {'probability_of_trouble': '4/11', 'modifier': lambda s: corrupt(30, s)},
+        {'probability_of_trouble': '4/11', 'modifier': lambda s: corrupt(40, s)},
+        {'probability_of_trouble': '1', 'modifier': precorrupt},
+        {'probability_of_trouble': '1', 'modifier': postcorrupt}]), indirect=True)
+
+
+def get_mock_cls_kwargs(mock_cls, kwargs_list):
+    return [dict([('mock_cls', mock_cls)] + k.items()) for k in kwargs_list]
 
 
 @some_lost_strcomm()
@@ -197,7 +204,7 @@ def test_exec_command_lostmsg(mock_strcomm, shortretry_msgpythonshell):
     shell = shortretry_msgpythonshell
     shell.exec_command('s = 0', timeout=2)
     expected_s = 0
-    with mock_strcomm.in_lost():
+    with mock_strcomm.in_trouble():
         for i in range(3):
             shell.exec_command('s += {i}'.format(i=i), timeout=2)
             s = shell.exec_command('s', timeout=2)
@@ -206,11 +213,12 @@ def test_exec_command_lostmsg(mock_strcomm, shortretry_msgpythonshell):
     shell.exec_command('s', timeout=2)
 
 
-@pytest.mark.parametrize('mock_strcomm', [{'probability_of_lost': '1'}],
+@pytest.mark.parametrize('mock_strcomm', [{'mock_cls': LostStrComm,
+                                           'probability_of_trouble': '1'}],
                          indirect=True)
 def test_exec_command_all_lost(mock_strcomm, terminate_msgpythonshell):
     broken_msg = 'Connection broken'
-    with mock_strcomm.in_lost():
+    with mock_strcomm.in_trouble():
         _expect_broken_shell(terminate_msgpythonshell, broken_msg)
 
     assert broken_msg in terminate_msgpythonshell.exec_command('s = 0')
@@ -226,7 +234,7 @@ def _expect_broken_shell(shell, broken_msg):
 @some_lost_strcomm()
 def test_exec_command_timeout(mock_strcomm, shortretry_msgpythonshell):
     shortretry_msgpythonshell.exec_command('import time')
-    with mock_strcomm.in_lost():
+    with mock_strcomm.in_trouble():
         with pytest.raises(TerminalClientError) as excinfo:
             shortretry_msgpythonshell.exec_command('time.sleep(0.5)', timeout=0.1)
 
