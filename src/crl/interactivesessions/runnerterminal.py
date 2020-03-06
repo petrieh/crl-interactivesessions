@@ -391,9 +391,13 @@ class RunnerTerminal(object):
         return out
 
     def __unpickle(self, output):
-        outputstream = BytesIO(output)
-        out = self.UNPICKLER(outputstream).load() if output else None
-        return out
+        try:
+            outputstream = BytesIO(output)
+            return self.UNPICKLER(outputstream).load() if output else None
+        except UnicodeDecodeError as e:
+            LOGGER.debug('__unpickle failed without encoding (%s: %s), '
+                         'trying bytes encoding...', e.__class__.__name__, e)
+            return pickle.loads(output, encoding='bytes')
 
     def __identity_or_raise(self, out):
         LOGGER.debug('__identity_or_raise: %s, type=%s', out, type(out))
@@ -401,6 +405,7 @@ class RunnerTerminal(object):
             raise RunnerTerminalSessionBroken('No output in terminal')
         steeringstring, pickled = out
         steeringstring = to_bytes(steeringstring)
+
         outobj = self.__try_to_unpickle(to_bytes(pickled), steeringstring)
         if steeringstring == b'exception':
             if hasattr(outobj, 'trace'):

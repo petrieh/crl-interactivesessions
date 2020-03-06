@@ -10,6 +10,7 @@ Library    crl.interactivesessions._terminalpools._TerminalPools
 
 Library    filehelper.py
 Library    SessionBroker.py
+Library    stringhelper.py
 Library    Collections
 
 
@@ -37,6 +38,9 @@ ${COMMAND}    echo out;>&2 echo err
 
 ${TEST_VALUE}=  ${None}
 @{TARGETS}=  target1  target2
+@{NONASCII_STRINGS}  `´  \xb4
+
+
 
 *** Keywords ***
 
@@ -271,6 +275,16 @@ Test Execute Command In Target Progress Log True
     ...     timeout=3
     ...     progress_log=${True}
 
+Test Execute NonAscii Command In Target
+    [Arguments]  ${target}
+    FOR   ${nonascii}   IN   @{NONASCII_STRINGS}
+        ${result}=   RemoteRunner.Execute Command In Target
+        ...     command=echo -e '${nonascii}'
+        ...     target=${target}
+        ...     timeout=3
+        stringhelper.String Should Contain  ${result.stdout}  ${nonascii}
+    END
+
 *** Test Cases ***
 Template Test Set Terminalpools Maxsize And Expect Failure
     [Template]  Test Set Terminalpools Maxsize And Expect Failure
@@ -303,6 +317,12 @@ Template Test Execute Command In Target Progress Log True
 
 Template Test Execute Command In Target
     [Template]  Test Execute Command In Target
+    target1
+    target2
+    target3
+
+Template Test Execute NonAscii Command In Target
+    [Template]  Test Execute NonAscii Command In Target
     target1
     target2
     target3
